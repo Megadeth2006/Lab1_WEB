@@ -45,10 +45,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         border: "1px solid white"
                     },
                     offset: {
-                        x: 240,
+                        x: 20,
                         y: 60
                     },
-                    position: "right",
+                    position: "left",
                 }).showToast();
             }
         });
@@ -65,10 +65,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         border: "1px solid white"
                     },
                     offset: {
-                        x: 240,
+                        x: 20,
                         y: 60
                     },
-                    position: "right",
+                    position: "left",
                 }).showToast();
                 e.target.focus();
             }
@@ -91,10 +91,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         border: "1px solid white"
                     },
                     offset: {
-                        x: 240,
+                        x: 20,
                         y: 60
                     },
-                    position: "right",
+                    position: "left",
                 }).showToast();
             }
         });
@@ -111,10 +111,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         border: "1px solid white"
                     },
                     offset: {
-                        x: 240,
+                        x: 20,
                         y: 60
                     },
-                    position: "right",
+                    position: "left",
                 }).showToast();
                 e.target.focus();
             }

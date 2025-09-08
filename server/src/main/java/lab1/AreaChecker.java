@@ -22,17 +22,17 @@ public class AreaChecker {
      */
     public static boolean isInArea(double x, double y, double r) {
         // Rectangle in first quadrant (x=0 to x=R/2, y=0 to y=R)
-        if (x >= 0 && y > 0) {
+        if (x >= 0 && y >= 0) {
             return (x <= r / 2) && (y <= r);
         }
         
         // Triangle in fourth quadrant (vertices at (0,0), (R,0), (0,-R/2))
-        if (x >= 0 && y <= 0) {
+        if (x >= 0 && y < 0) {
             return (x <= r) && (y >= -r / 2) && (x - 2 * y <= r);
         }
         
         // Quarter circle in third quadrant (center at (0,0), radius R)
-        if (x < 0 && y <= 0) {
+        if (x < 0 && y < 0) {
             return (x * x + y * y) <= (r * r);
         }
         

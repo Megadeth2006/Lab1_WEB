@@ -1,0 +1,27 @@
+{
+  "dependencies": {
+    "composer": "^4.1.0",
+    "php": "^1.0.2",
+    "yarn": "^1.22.22"
+  },
+  "scripts": {
+    "dev": "lite-server",
+    "deploy": "./deploy.sh",
+    "deploy-java": "./deploy-java.sh",
+    "build-java": "cd server-java && mvn clean package",
+    "test-java": "cd server-java && mvn test",
+    "start-java": "cd server-java && java -jar target/area-checker-server-1.0.0.jar",
+    "clean-java": "cd server-java && mvn clean",
+    "compile-java": "cd server-java && mvn compile",
+    "package-java": "cd server-java && mvn package -DskipTests"
+  },
+  "name": "simple-one-page-website-java",
+  "version": "1.0.0",
+  "main": "main.js",
+  "repository": "git@github.com:worthant/simple-one-page-website.git",
+  "author": "worthant <b_dvorkin@niuitmo.ru>",
+  "license": "MIT",
+  "devDependencies": {
+    "lite-server": "^2.6.1"
+  }
+}

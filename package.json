@@ -1,0 +1,20 @@
+{
+  "dependencies": {
+    "composer": "^4.1.0",
+    "php": "^1.0.2",
+    "yarn": "^1.22.22"
+  },
+  "scripts": {
+    "dev": "lite-server",
+    "deploy": "./deploy.sh"
+  },
+  "name": "simple-one-page-website",
+  "version": "1.0.0",
+  "main": "main.js",
+  "repository": "git@github.com:worthant/simple-one-page-website.git",
+  "author": "worthant <b_dvorkin@niuitmo.ru>",
+  "license": "MIT",
+  "devDependencies": {
+    "lite-server": "^2.6.1"
+  }
+}

@@ -28,9 +28,9 @@ public class ResponseBuilder {
             
             // Add result with appropriate CSS class
             if (result.isInArea()) {
-                html.append("<td><span class='result-cell-in'>Hit</span></td>");
+                html.append("<td><span class='result-cell-in'>Попал!</span></td>");
             } else {
-                html.append("<td><span class='result-cell-out'>Didn't hit</span></td>");
+                html.append("<td><span class='result-cell-out'>Не попал!</span></td>");
             }
             
             html.append("<td>").append(result.getCurrentTime()).append("</td>");

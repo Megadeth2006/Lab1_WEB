@@ -14,55 +14,47 @@ class CoordinatesValidatorTest {
 
     @Test
     void testValidCoordinates() {
-        CoordinatesValidator validator = new CoordinatesValidator(0, 0, 2);
+        CoordinatesValidator validator = new CoordinatesValidator(0, 0, 3);
         assertTrue(validator.checkData());
     }
 
     @ParameterizedTest
-    @ValueSource(doubles = {-3, -2, -1, 0, 1, 2, 3, 4, 5})
+    @ValueSource(doubles = {-4.9, -2.5, 0, 2.3, 4.9})
     void testValidXValues(double x) {
-        CoordinatesValidator validator = new CoordinatesValidator(x, 0, 2);
+        CoordinatesValidator validator = new CoordinatesValidator(x, 0, 3);
         assertTrue(validator.checkData());
     }
 
     @Test
     void testInvalidXValues() {
         // Test invalid X values
-        assertFalse(new CoordinatesValidator(-4, 0, 2).checkData());
-        assertFalse(new CoordinatesValidator(6, 0, 2).checkData());
-        assertFalse(new CoordinatesValidator(0.5, 0, 2).checkData());
-        assertFalse(new CoordinatesValidator(-1.5, 0, 2).checkData());
+        assertFalse(new CoordinatesValidator(-5, 0, 3).checkData());  // X = -5 (not included)
+        assertFalse(new CoordinatesValidator(5, 0, 3).checkData());   // X = 5 (not included)
+        assertFalse(new CoordinatesValidator(-5.1, 0, 3).checkData()); // X < -5
+        assertFalse(new CoordinatesValidator(5.1, 0, 3).checkData());  // X > 5
     }
 
-    @Test
-    void testValidYRange() {
-        // Test valid Y values
-        assertTrue(new CoordinatesValidator(0, -4.9, 2).checkData());
-        assertTrue(new CoordinatesValidator(0, 4.9, 2).checkData());
-        assertTrue(new CoordinatesValidator(0, 0, 2).checkData());
-        assertTrue(new CoordinatesValidator(0, -1.5, 2).checkData());
-        assertTrue(new CoordinatesValidator(0, 3.7, 2).checkData());
-    }
-
-    @Test
-    void testInvalidYRange() {
-        // Test invalid Y values
-        assertFalse(new CoordinatesValidator(0, -5, 2).checkData());  // Y = -5 (not included)
-        assertFalse(new CoordinatesValidator(0, 5, 2).checkData());   // Y = 5 (not included)
-        assertFalse(new CoordinatesValidator(0, -5.1, 2).checkData()); // Y < -5
-        assertFalse(new CoordinatesValidator(0, 5.1, 2).checkData());  // Y > 5
+    @ParameterizedTest
+    @ValueSource(doubles = {-4, -3, -2, -1, 0, 1, 2, 3, 4})
+    void testValidYValues(double y) {
+        CoordinatesValidator validator = new CoordinatesValidator(0, y, 3);
+        assertTrue(validator.checkData());
     }
 
     @Test
     void testInvalidYValues() {
-        // Test special values
-        assertFalse(new CoordinatesValidator(0, Double.NaN, 2).checkData());
-        assertFalse(new CoordinatesValidator(0, Double.POSITIVE_INFINITY, 2).checkData());
-        assertFalse(new CoordinatesValidator(0, Double.NEGATIVE_INFINITY, 2).checkData());
+        // Test invalid Y values
+        assertFalse(new CoordinatesValidator(0, -5, 3).checkData());
+        assertFalse(new CoordinatesValidator(0, 5, 3).checkData());
+        assertFalse(new CoordinatesValidator(0, 0.5, 3).checkData());
+        assertFalse(new CoordinatesValidator(0, -1.5, 3).checkData());
+        assertFalse(new CoordinatesValidator(0, Double.NaN, 3).checkData());
+        assertFalse(new CoordinatesValidator(0, Double.POSITIVE_INFINITY, 3).checkData());
+        assertFalse(new CoordinatesValidator(0, Double.NEGATIVE_INFINITY, 3).checkData());
     }
 
     @ParameterizedTest
-    @ValueSource(doubles = {1, 1.5, 2, 2.5, 3})
+    @ValueSource(doubles = {2.1, 2.5, 3.0, 3.5, 4.9})
     void testValidRValues(double r) {
         CoordinatesValidator validator = new CoordinatesValidator(0, 0, r);
         assertTrue(validator.checkData());
@@ -71,10 +63,10 @@ class CoordinatesValidatorTest {
     @Test
     void testInvalidRValues() {
         // Test invalid R values
-        assertFalse(new CoordinatesValidator(0, 0, 0.5).checkData());
-        assertFalse(new CoordinatesValidator(0, 0, 3.5).checkData());
-        assertFalse(new CoordinatesValidator(0, 0, 1.2).checkData());
-        assertFalse(new CoordinatesValidator(0, 0, 2.7).checkData());
+        assertFalse(new CoordinatesValidator(0, 0, 2).checkData());   // R = 2 (not included)
+        assertFalse(new CoordinatesValidator(0, 0, 5).checkData());   // R = 5 (not included)
+        assertFalse(new CoordinatesValidator(0, 0, 1.5).checkData()); // R < 2
+        assertFalse(new CoordinatesValidator(0, 0, 5.1).checkData()); // R > 5
     }
 
     @Test
@@ -88,8 +80,8 @@ class CoordinatesValidatorTest {
     @Test
     void testFloatingPointPrecision() {
         // Test that floating point precision is handled correctly
-        assertTrue(new CoordinatesValidator(1.0, 0, 2.0).checkData());
-        assertTrue(new CoordinatesValidator(1.0000000001, 0, 2.0).checkData()); // Should be treated as 1
-        assertTrue(new CoordinatesValidator(1.0, 0, 2.0000000001).checkData()); // Should be treated as 2
+        assertTrue(new CoordinatesValidator(1.0, 0, 3.0).checkData());
+        assertTrue(new CoordinatesValidator(1.0000000001, 0, 3.0).checkData()); // Should be treated as 1
+        assertTrue(new CoordinatesValidator(1.0, 0, 3.0000000001).checkData()); // Should be treated as 3
     }
 }

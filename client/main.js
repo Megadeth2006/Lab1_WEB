@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-const mainForm = document.querySelector('input[value="Check"]');
+const mainForm = document.querySelector('input[value="Проверить"]');
 let isSubmitting = false; // Флаг для предотвращения множественных отправок
 
 mainForm.addEventListener('click', function (e) {

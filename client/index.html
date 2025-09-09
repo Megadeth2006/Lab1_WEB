@@ -8,10 +8,264 @@
 
     <meta name="author" content="Григорьев Александрович">
     <meta name="description" content="Веб-программирование: Лабораторная работа №1.">
-
-    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     
-    <title>Web programming laboratory work no. 1</title>
+    <title>Веб-приложение для проверки попадания точки в заданную область</title>
+    
+    <style>
+        /* Базовые стили с наследованием */
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #ffffffcc;
+            color-scheme: dark;
+            background-size: cover;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Селектор элемента */
+        h1 {
+            font-family: monospace; /* Явно заданный шрифт для шапки */
+            font-size: 18px;
+            color: #000000;
+            margin: 0;
+        }
+
+        /* Селектор потомства */
+        header .info {
+            font-family: monospace; /* Наследование от h1 */
+            font-size: 16px;
+            font-weight: 100;
+            text-align: center;
+            color: #000000;
+        }
+
+        /* Селектор атрибута */
+        input[type="text"] {
+            padding: 2%;
+            border-radius: 4px;
+            border: 1px solid #000000;
+            width: 15%;
+        }
+
+        /* Селектор атрибута с значением */
+        input[type="radio"] {
+            margin: 1%;
+        }
+
+        /* Псевдоэлемент */
+        input[type="text"]::placeholder {
+            color: #b5a0a0;
+            font-style: italic;
+        }
+
+        /* Псевдоэлемент для фокуса */
+        input[type="text"]:focus::after {
+            content: " ✓";
+            color: green;
+        }
+
+        /* Каскадирование - переопределение стилей */
+        input {
+            padding: 1em; /* Базовое значение */
+        }
+
+        input[type="text"],
+        select {
+            padding: 2%; /* Каскадирование - переопределение в процентах */
+            border-radius: 4px;
+            border: 1px solid #000000;
+        }
+
+        /* Селектор потомства */
+        .form .input-group {
+            margin-bottom: 2%;
+            text-align: center;
+        }
+
+        /* Селектор потомства */
+        .form .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1em;
+            justify-content: center;
+            margin: 2% 0;
+        }
+
+        /* Селектор потомства */
+        .form .check-btn {
+            display: flex;
+            justify-content: center;
+            margin-top: 3%;
+        }
+
+        /* Селектор элемента с псевдоклассом */
+        input[type="submit"] {
+            padding: 1% 3%;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: rgb(255, 255, 255);
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* Псевдокласс для hover */
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+            border: 2px solid #57a8ff;
+        }
+
+        /* Табличная верстка */
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2% 0;
+        }
+
+        .main-table td {
+            vertical-align: top;
+            padding: 2%;
+        }
+
+        /* Стили для графической области */
+        .graph-cell {
+            width: 50%;
+            text-align: center;
+        }
+
+        .graph {
+            border-radius: 10px;
+            border: 1px solid rgb(0, 0, 0);
+            padding: 5%;
+            backdrop-filter: blur(7px);
+            box-shadow: 0px 0px 3px white;
+            max-height: 700px;
+        }
+
+        /* Стили для формы */
+        .form-cell {
+            width: 50%;
+            text-align: center;
+        }
+
+        .form {
+            border-radius: 10px;
+            border: 1px solid rgb(0, 0, 0);
+            padding: 5%;
+            backdrop-filter: blur(7px);
+            box-shadow: 0px 0px 3px rgb(0, 0, 0);
+            max-height: 700px;
+        }
+
+        /* Стили для таблицы результатов */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2% 0;
+        }
+
+        .results-table th,
+        .results-table td {
+            text-align: center;
+            padding: 1%;
+            border: 1px solid rgb(0, 0, 0);
+        }
+
+        /* Псевдоэлемент для первой ячейки заголовка */
+        .results-table th:first-child {
+            border-radius: 20px 0 0 0;
+        }
+
+        /* Псевдоэлемент для последней ячейки заголовка */
+        .results-table th:last-child {
+            border-radius: 0 10px 0 0;
+        }
+
+        /* Селектор потомства для ячеек результатов */
+        .results-table .result-cell-in {
+            color: rgb(27, 193, 27);
+        }
+
+        .results-table .result-cell-out {
+            color: rgb(174, 9, 9);
+        }
+
+        /* Стили для заголовка */
+        header {
+            height: 60px;
+            border-radius: 10px;
+            display: table;
+            width: 100%;
+            box-shadow: 0px 0px 2px rgb(0, 0, 0);
+            backdrop-filter: blur(10px);
+            margin-bottom: 2%;
+        }
+
+        .header-content {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .date-time {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: right;
+            padding-right: 2%;
+            font-size: 12px;
+        }
+
+        /* Селектор атрибута для select */
+        select[name="rVal"] {
+            width: 20%;
+            padding: 2%;
+        }
+
+        /* Псевдокласс для четных строк таблицы */
+        .results-table tbody tr:nth-child(even) {
+            background-color: rgba(255, 251, 200, 0.1);
+        }
+
+        /* Псевдокласс для нечетных строк таблицы */
+        .results-table tbody tr:nth-child(odd) {
+            background-color: rgba(188, 207, 255, 0.577);
+        }
+
+        /* Улучшенные стили для Toastify уведомлений */
+        .toastify {
+            position: fixed !important;
+            z-index: 9999 !important;
+            margin-left: 60px !important; /* Отступ слева */
+            max-width: 400px !important; /* Максимальная ширина */
+            word-wrap: break-word !important; /* Перенос слов */
+            border-radius: 8px !important; /* Скругленные углы */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important; /* Тень */
+            cursor: pointer !important;
+            transition: opacity 0.3s ease !important;
+            left: 20px !important; /* Фиксированная позиция слева */
+            top: 80px !important; /* Фиксированная позиция сверху */
+        }
+
+        .toastify:hover {
+            opacity: 0.8 !important;
+        }
+
+        /* Контейнер для уведомлений */
+        #toast-container {
+            position: fixed !important;
+            top: 0 !important;
+            right: 0 !important;
+            z-index: 9999 !important;
+            padding: 20px !important; /* Отступ от края экрана */
+        }
+
+        /* Скрытие уведомлений */
+        .toastify.hide {
+            display: none !important;
+        }
+    </style>
 </head>
 
 <body>

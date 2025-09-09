@@ -1,6 +1,6 @@
 import inputValidator from "./inputValidator.js";
 
-// Исправленная система управления уведомлениями
+// Простая и надежная система уведомлений
 class NotificationManager {
     constructor() {
         this.currentToast = null;
@@ -8,8 +8,8 @@ class NotificationManager {
     }
 
     showToast(options) {
-        // Очищаем предыдущее уведомление
-        this.clearCurrentToast();
+        // Мгновенно удаляем все существующие уведомления
+        this.clearAllToasts();
         
         // Создаем новое уведомление
         this.currentToast = Toastify({
@@ -20,7 +20,8 @@ class NotificationManager {
                 border: "1px solid white",
                 marginLeft: "20px",
                 maxWidth: "400px",
-                wordWrap: "break-word"
+                wordWrap: "break-word",
+                cursor: "pointer"
             },
             position: "top-right",
             gravity: "top",
@@ -30,68 +31,65 @@ class NotificationManager {
                 x: 50,
                 y: 60
             },
-            duration: 2000,
-            close: true,
+            duration: 3000, // 3 секунды
+            close: false, // Отключаем встроенную кнопку
             onClick: () => {
-                this.clearCurrentToast();
+                this.clearAllToasts();
             }
         });
 
         this.currentToast.showToast();
         
-        // Привязываем кнопку закрытия к нашему методу
+        // Добавляем обработчик клика на весь элемент уведомления
         setTimeout(() => {
-            const closeButton = document.querySelector('.toast-close');
-            if (closeButton) {
-                closeButton.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    this.clearCurrentToast();
+            const toastElement = document.querySelector('.toastify');
+            if (toastElement) {
+                toastElement.addEventListener('click', () => {
+                    this.clearAllToasts();
                 });
             }
         }, 100);
         
-        // Автоматическое удаление через 2.5 секунды
+        // Автоматическое удаление через 3.5 секунды
         this.removalTimeout = setTimeout(() => {
-            this.clearCurrentToast();
-        }, 2500);
+            this.clearAllToasts();
+        }, 3500);
     }
 
-    clearCurrentToast() {
+    clearAllToasts() {
         // Очищаем таймаут
         if (this.removalTimeout) {
             clearTimeout(this.removalTimeout);
             this.removalTimeout = null;
         }
         
-        // Удаляем текущее уведомление
-        if (this.currentToast) {
-            try {
-                this.currentToast.hideToast();
-            } catch (e) {
-                console.log('hideToast failed, removing manually');
-            }
-            this.currentToast = null;
-        }
-        
-        // Принудительно удаляем все уведомления из DOM
+        // Удаляем все уведомления из DOM
         const allToasts = document.querySelectorAll('.toastify');
         allToasts.forEach(toast => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateX(100%)';
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.parentNode.removeChild(toast);
-                }
-            }, 200);
+            toast.remove();
         });
+        
+        if (this.currentToast) {
+            this.currentToast = null;
+        }
     }
 }
 
 // Создаем глобальный экземпляр менеджера
 const notificationManager = new NotificationManager();
 
+// Глобальные переменные
+let isSubmitting = false;
+let mainForm = null;
+let formHandlerAttached = false;
+let lastSubmissionTime = 0;
+let tabId = null;
+
 document.addEventListener("DOMContentLoaded", () => {
+    // Генерируем уникальный ID для этой вкладки
+    tabId = 'tab_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    console.log('Tab ID:', tabId);
+    
     // Update Date and Time Function
     function updateDateTime() {
         const now = new Date();
@@ -102,19 +100,28 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initial Date Time Update
     updateDateTime();
     setInterval(updateDateTime, 1000);
-});
 
-window.onload = function () {
-    // const savedData = JSON.parse(localStorage.getItem('tableData')) || [];
-    // savedData.forEach(data => {
-    //     addToTable(data.x, data.y, data.r, data.result, data.curr_time, data.exec_time);
-    // })
+    // Загружаем сохраненные данные
     console.log(localStorage.getItem("session"));
     document.getElementById("output").innerHTML = localStorage.getItem("session");
-}
 
-// Добавляем валидацию в реальном времени для текстовых полей
-document.addEventListener('DOMContentLoaded', function() {
+    // Инициализируем форму
+    mainForm = document.querySelector('input[value="Проверить"]');
+    if (mainForm) {
+        setupFormHandlers();
+    }
+    
+    // Очищаем блокировку при закрытии вкладки
+    window.addEventListener('beforeunload', function() {
+        const globalSubmissionKey = 'form_submission_active';
+        const activeSubmission = localStorage.getItem(globalSubmissionKey);
+        if (activeSubmission === tabId) {
+            localStorage.removeItem(globalSubmissionKey);
+            console.log('Cleared global lock on tab close');
+        }
+    });
+
+    // Добавляем валидацию в реальном времени для текстовых полей
     const xInput = document.querySelector('#x');
     const rInput = document.querySelector('#r');
     
@@ -171,20 +178,62 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-const mainForm = document.querySelector('input[value="Проверить"]');
-let isSubmitting = false; // Флаг для предотвращения множественных отправок
+// Функция для настройки обработчиков формы
+function setupFormHandlers() {
+    if (!mainForm || formHandlerAttached) return;
+    
+    console.log('Setting up form handlers');
+    
+    // Добавляем обработчик только один раз
+    mainForm.addEventListener('click', handleFormSubmit, { once: false });
+    formHandlerAttached = true;
+    
+    console.log('Form handler attached');
+}
 
-mainForm.addEventListener('click', function (e) {
+// Обработчик отправки формы
+function handleFormSubmit(e) {
     // default action is to send the form data to the server and reload the page
     // by calling .preventDefault() i am stopping the browser from doing this, 
     // which allows me to handle the form submission programmatically in your JavaScript code instead.
     e.preventDefault();
+    e.stopPropagation();
+    
+    const currentTime = Date.now();
+    
+    // Проверяем временную блокировку (минимум 2 секунды между отправками)
+    if (currentTime - lastSubmissionTime < 2000) {
+        console.log('Too soon since last submission, ignoring click');
+        return;
+    }
+    
+    // Проверяем глобальную блокировку через localStorage
+    const globalSubmissionKey = 'form_submission_active';
+    const activeSubmission = localStorage.getItem(globalSubmissionKey);
+    if (activeSubmission && activeSubmission !== tabId) {
+        console.log('Another tab is submitting, ignoring click');
+        notificationManager.showToast({
+            text: "Другая вкладка уже отправляет запрос. Подождите..."
+        });
+        return;
+    }
     
     // Предотвращаем множественные отправки
     if (isSubmitting) {
+        console.log('Form is already submitting, ignoring click');
         return;
     }
+    
+    // Устанавливаем глобальную блокировку
+    localStorage.setItem(globalSubmissionKey, tabId);
+    
+    // Блокируем кнопку и устанавливаем флаг
     isSubmitting = true;
+    lastSubmissionTime = currentTime;
+    mainForm.disabled = true;
+    mainForm.value = "Отправка...";
+    
+    console.log('Starting form submission at', new Date().toISOString());
 
     const xElement = document.querySelector('#x');
     const yElement = document.querySelector('input[name="yVal"]:checked');
@@ -203,7 +252,7 @@ mainForm.addEventListener('click', function (e) {
             notificationManager.showToast({
                 text: validator.getMessage()
             });
-            isSubmitting = false;
+            resetFormState();
             return;
         }
         
@@ -211,7 +260,7 @@ mainForm.addEventListener('click', function (e) {
             notificationManager.showToast({
                 text: validator.getMessage()
             });
-            isSubmitting = false;
+            resetFormState();
             return;
         }
         
@@ -252,23 +301,85 @@ mainForm.addEventListener('click', function (e) {
                 })
                 .finally(() => {
                     // Сбрасываем флаг после завершения запроса
-                    isSubmitting = false;
+                    resetFormState();
                 })
         } else {
             notificationManager.showToast({
                 text: validator.getMessage()
             });
-            // Сбрасываем флаг при ошибке валидации
-            isSubmitting = false;
+            resetFormState();
             return;
         }
     } else {
         notificationManager.showToast({
             text: "Пожалуйста, заполните все поля формы перед отправкой",
         });
-        // Сбрасываем флаг при ошибке заполнения полей
-        isSubmitting = false;
+        resetFormState();
     }
-});
+}
 
+// Функция для сброса состояния формы
+function resetFormState() {
+    console.log('Resetting form state');
+    isSubmitting = false;
+    
+    // Очищаем глобальную блокировку
+    const globalSubmissionKey = 'form_submission_active';
+    const activeSubmission = localStorage.getItem(globalSubmissionKey);
+    if (activeSubmission === tabId) {
+        localStorage.removeItem(globalSubmissionKey);
+        console.log('Global submission lock cleared');
+    }
+    
+    if (mainForm) {
+        mainForm.disabled = false;
+        mainForm.value = "Проверить";
+    }
+    console.log('Form state reset at', new Date().toISOString());
+}
 
+// Принудительная очистка уведомлений каждые 500мс
+setInterval(() => {
+    const toasts = document.querySelectorAll('.toastify');
+    if (toasts.length > 1) {
+        // Оставляем только последнее уведомление
+        for (let i = 0; i < toasts.length - 1; i++) {
+            toasts[i].remove();
+        }
+    }
+}, 500);
+
+// Глобальная функция для принудительного закрытия всех уведомлений
+window.closeAllToasts = function() {
+    const allToasts = document.querySelectorAll('.toastify');
+    allToasts.forEach(toast => {
+        toast.remove();
+    });
+};
+
+// Глобальная функция для принудительного сброса формы
+window.resetForm = function() {
+    console.log('Force resetting form');
+    resetFormState();
+    lastSubmissionTime = 0;
+};
+
+// Глобальная функция для проверки состояния формы
+window.checkFormState = function() {
+    console.log('Form state:', {
+        isSubmitting: isSubmitting,
+        formHandlerAttached: formHandlerAttached,
+        lastSubmissionTime: lastSubmissionTime,
+        timeSinceLastSubmission: Date.now() - lastSubmissionTime,
+        tabId: tabId,
+        globalLock: localStorage.getItem('form_submission_active')
+    });
+};
+
+// Глобальная функция для принудительной очистки всех блокировок
+window.clearAllLocks = function() {
+    console.log('Clearing all locks');
+    localStorage.removeItem('form_submission_active');
+    resetFormState();
+    lastSubmissionTime = 0;
+};

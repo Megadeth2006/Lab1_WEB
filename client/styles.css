@@ -1,7 +1,7 @@
 /* Базовые стили с наследованием */
 body {
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background-color: #5c2121cc;
+    background-color: #ffffffcc;
     color-scheme: dark;
     background-size: cover;
     background-attachment: fixed;
@@ -13,7 +13,7 @@ body {
 h1 {
     font-family: monospace; /* Явно заданный шрифт для шапки */
     font-size: 18px;
-    color: #ffffff;
+    color: #000000;
     margin: 0;
 }
 
@@ -23,14 +23,14 @@ header .info {
     font-size: 16px;
     font-weight: 100;
     text-align: center;
-    color: #ffffff;
+    color: #000000;
 }
 
 /* Селектор атрибута */
 input[type="text"] {
     padding: 2%;
     border-radius: 4px;
-    border: 1px solid #ccc;
+    border: 1px solid #000000;
     width: 15%;
 }
 
@@ -41,7 +41,7 @@ input[type="radio"] {
 
 /* Псевдоэлемент */
 input[type="text"]::placeholder {
-    color: #999;
+    color: #b5a0a0;
     font-style: italic;
 }
 
@@ -60,7 +60,7 @@ input[type="text"],
 select {
     padding: 2%; /* Каскадирование - переопределение в процентах */
     border-radius: 4px;
-    border: 1px solid #ccc;
+    border: 1px solid #000000;
 }
 
 /* Селектор потомства */
@@ -90,7 +90,7 @@ input[type="submit"] {
     padding: 1% 3%;
     border-radius: 4px;
     background-color: #007bff;
-    color: white;
+    color: rgb(255, 255, 255);
     border: none;
     cursor: pointer;
     font-size: 16px;
@@ -122,7 +122,7 @@ input[type="submit"]:hover {
 
 .graph {
     border-radius: 10px;
-    border: 1px solid white;
+    border: 1px solid rgb(0, 0, 0);
     padding: 5%;
     backdrop-filter: blur(7px);
     box-shadow: 0px 0px 3px white;
@@ -137,10 +137,10 @@ input[type="submit"]:hover {
 
 .form {
     border-radius: 10px;
-    border: 1px solid white;
+    border: 1px solid rgb(0, 0, 0);
     padding: 5%;
     backdrop-filter: blur(7px);
-    box-shadow: 0px 0px 3px white;
+    box-shadow: 0px 0px 3px rgb(0, 0, 0);
     max-height: 700px;
 }
 
@@ -155,7 +155,7 @@ input[type="submit"]:hover {
 .results-table td {
     text-align: center;
     padding: 1%;
-    border: 1px solid white;
+    border: 1px solid rgb(0, 0, 0);
 }
 
 /* Псевдоэлемент для первой ячейки заголовка */
@@ -170,11 +170,11 @@ input[type="submit"]:hover {
 
 /* Селектор потомства для ячеек результатов */
 .results-table .result-cell-in {
-    color: green;
+    color: rgb(27, 193, 27);
 }
 
 .results-table .result-cell-out {
-    color: red;
+    color: rgb(174, 9, 9);
 }
 
 /* Стили для заголовка */
@@ -183,7 +183,7 @@ header {
     border-radius: 10px;
     display: table;
     width: 100%;
-    box-shadow: 0px 0px 2px white;
+    box-shadow: 0px 0px 2px rgb(0, 0, 0);
     backdrop-filter: blur(10px);
     margin-bottom: 2%;
 }
@@ -210,10 +210,41 @@ select[name="rVal"] {
 
 /* Псевдокласс для четных строк таблицы */
 .results-table tbody tr:nth-child(even) {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 251, 200, 0.1);
 }
 
 /* Псевдокласс для нечетных строк таблицы */
 .results-table tbody tr:nth-child(odd) {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(188, 207, 255, 0.577);
+}
+
+
+
+
+
+/* Улучшенные стили для Toastify уведомлений */
+.toastify {
+    position: fixed !important;
+    z-index: 9999 !important;
+    margin-left: 200px !important; /* Отступ слева */
+    max-width: 400px !important; /* Максимальная ширина */
+    word-wrap: break-word !important; /* Перенос слов */
+    border-radius: 8px !important; /* Скругленные углы */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important; /* Тень */
+}
+
+.toastify .toast-close {
+    color: white !important;
+    font-weight: bold !important;
+    font-size: 18px !important;
+    margin-left: 10px !important;
+}
+
+/* Контейнер для уведомлений */
+#toast-container {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    z-index: 9999 !important;
+    padding: 20px !important; /* Отступ от края экрана */
 }

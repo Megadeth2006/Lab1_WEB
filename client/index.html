@@ -265,6 +265,29 @@
         .toastify.hide {
             display: none !important;
         }
+
+        /* Стили для точек на графике */
+
+        .point-in {
+            fill: #00ff00 !important;
+            stroke: #000000 !important;
+            stroke-width: 1 !important;
+        }
+
+        .point-out {
+            fill: #ff0000 !important;
+            stroke: #000000 !important;
+            stroke-width: 1 !important;
+        }
+
+        .point-label {
+            font-family: monospace;
+            font-size: 10px;
+            fill: #ffffff;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+        }
+
+
     </style>
 </head>
 
@@ -284,6 +307,11 @@
             <tr>
                 <td class="graph-cell">
                     <div class="graph">
+                        <!-- Легенда для точек -->
+                        <div style="margin-bottom: 10px; text-align: center; font-size: 12px;">
+                            <span style="color: #00ff00;">●</span> Попал в область
+                            <span style="margin-left: 15px; color: #ff0000;">●</span> Не попал в область
+                        </div>
                         <svg height="300" width="300" xmlns="http://www.w3.org/2000/svg">
                             <!-- Оси со стрелками -->
                             <line stroke="gray" x1="0" x2="300" y1="150" y2="150" />
@@ -321,13 +349,13 @@
                             <text fill="white" x="290" y="140">X</text>
 
                             <!-- Прямоугольник в первом квадранте (x=0 до x=R/2, y=0 до y=R) -->
-                            <rect x="150" y="50" width="50" height="100" fill="#1E90FF" fill-opacity="0.1" stroke="#1E90FF" />
+                            <rect x="150" y="50" width="50" height="100" fill="#1E90FF" fill-opacity="0.3" stroke="#1E90FF" stroke-width="2" />
 
                             <!-- Треугольник в четвертом квадранте (вершины в (0,0), (R,0), (0,-R/2)) -->
-                            <polygon fill="#1E90FF" fill-opacity="0.1" points="150,150 250,150 150,200" stroke="#1E90FF" />
+                            <polygon fill="#1E90FF" fill-opacity="0.3" points="150,150 250,150 150,200" stroke="#1E90FF" stroke-width="2" />
 
                             <!-- Четверть окружности: центр (0,0), радиус R, III четверть -->
-                            <path d="M 150 150 L 50 150 A 100 100 0 0 0 150 250 Z" fill="1E90FF" fill-opacity="0.1" stroke="1E90FF"/>
+                            <path d="M 150 150 L 50 150 A 100 100 0 0 0 150 250 Z" fill="#1E90FF" fill-opacity="0.3" stroke="#1E90FF" stroke-width="2"/>
 
                             <!-- Центр оси координат -->
                             <circle cx="150" cy="150" id="target-dot" r="0" stroke="white" fill="white"></circle>

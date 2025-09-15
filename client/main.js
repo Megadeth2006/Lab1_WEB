@@ -109,6 +109,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (mainForm) {
         setupFormHandlers();
     }
+
+
     
     // Очищаем блокировку при закрытии вкладки
     window.addEventListener('beforeunload', function() {
@@ -189,6 +191,9 @@ function setupFormHandlers() {
     
     console.log('Form handler attached');
 }
+
+
+
 
 // Обработчик отправки формы
 function handleFormSubmit(e) {
@@ -283,7 +288,7 @@ function handleFormSubmit(e) {
             }
             formData.append('sessionId', sessionId);
 
-            fetch(`http://localhost:8080/script`, {
+            fetch(`http://localhost:8080/fcgi-bin/app.jar`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -294,13 +299,11 @@ function handleFormSubmit(e) {
                     if (!response.ok) {
                         throw new Error(`Server responded with bad getaway status: ${response.status}`);
                     }
-                    return response.text();
+                    return response.json();
                 })
-                .then(function (serverAnswer) {
-                    localStorage.setItem("session", serverAnswer);
-                    document.getElementById("output").innerHTML = serverAnswer;
-                    // addToTable(xVal, yVal, rVal, responseData.result, responseData.curr_time, responseData.exec_time);
-                    // saveToLocalStorage(xVal, yVal, rVal, responseData.result, responseData.curr_time, responseData.exec_time);
+                .then(function (jsonData) {
+                    localStorage.setItem("session", JSON.stringify(jsonData));
+                    updateResultsTable(jsonData.results);
                 })
                 .catch(error => {
                     console.error('Fetch error:', error);
@@ -391,12 +394,109 @@ window.clearAllLocks = function() {
     lastSubmissionTime = 0;
 };
 
+// Функция для преобразования координат из системы координат приложения в координаты SVG
+function convertToSVGCoordinates(x, y, r, svgWidth = 300, svgHeight = 300) {
+    // Центр SVG (150, 150)
+    const centerX = svgWidth / 2;
+    const centerY = svgHeight / 2;
+    
+    // Масштаб для отображения (пикселей на единицу координат)
+    const scale = 50; // 50 пикселей на единицу координат
+    
+    // Преобразуем координаты
+    const svgX = centerX + (x * scale);
+    const svgY = centerY - (y * scale); // Инвертируем Y для правильного отображения
+    
+    return { x: svgX, y: svgY };
+}
+
+// Функция для добавления точки на график
+function addPointToGraph(x, y, r, isInArea) {
+    const svg = document.querySelector('svg');
+    if (!svg) return;
+    
+    const coords = convertToSVGCoordinates(x, y, r);
+    
+    // Создаем группу для точки
+    const pointGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    pointGroup.setAttribute('class', 'point-group');
+    
+    // Создаем круг для точки
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', coords.x);
+    circle.setAttribute('cy', coords.y);
+    circle.setAttribute('r', '4');
+    circle.setAttribute('fill', isInArea ? '#00ff00' : '#ff0000');
+    circle.setAttribute('stroke', '#000000');
+    circle.setAttribute('stroke-width', '1');
+    circle.setAttribute('class', isInArea ? 'point-in' : 'point-out');
+    
+    // Добавляем анимацию появления
+    circle.setAttribute('opacity', '0');
+    circle.style.transition = 'opacity 0.5s ease-in-out';
+    
+    pointGroup.appendChild(circle);
+    svg.appendChild(pointGroup);
+    
+    // Анимация появления
+    setTimeout(() => {
+        circle.setAttribute('opacity', '1');
+    }, 100);
+    
+    // Добавляем подпись с координатами
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', coords.x + 8);
+    label.setAttribute('y', coords.y - 8);
+    label.setAttribute('font-size', '10');
+    label.setAttribute('fill', '#ffffff');
+    label.setAttribute('class', 'point-label');
+    label.textContent = `(${x}, ${y})`;
+    
+    pointGroup.appendChild(label);
+    
+}
+
+
+// Функция для обновления таблицы результатов
+function updateResultsTable(results) {
+    const tbody = document.getElementById("output");
+    if (!tbody) return;
+    
+    if (!results || results.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #666;">Нет результатов</td></tr>';
+        return;
+    }
+    
+    
+    let html = '';
+    results.forEach(result => {
+        const resultText = result.isInArea ? 'Попал!' : 'Не попал!';
+        const resultClass = result.isInArea ? 'result-cell-in' : 'result-cell-out';
+        
+        // Добавляем точку на график
+        addPointToGraph(result.x, result.y, result.r, result.isInArea);
+        
+        html += `
+            <tr>
+                <td>${result.x}</td>
+                <td>${result.y}</td>
+                <td>${result.r}</td>
+                <td><span class="${resultClass}">${resultText}</span></td>
+                <td>${result.currentTime}</td>
+                <td>${result.executionTime.toFixed(6)}</td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+}
+
 // Функция для загрузки сохраненных результатов
 function loadSavedResults() {
     const sessionId = localStorage.getItem('sessionId');
     if (sessionId) {
         // Запрашиваем результаты для текущей сессии
-        fetch(`http://localhost:8080/script?sessionId=${encodeURIComponent(sessionId)}`, {
+        fetch(`http://localhost:8080/fcgi-bin/app.jar?sessionId=${encodeURIComponent(sessionId)}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -404,14 +504,14 @@ function loadSavedResults() {
         })
         .then(response => {
             if (response.ok) {
-                return response.text();
+                return response.json();
             }
             throw new Error(`Server responded with status: ${response.status}`);
         })
-        .then(htmlResponse => {
-            if (htmlResponse && htmlResponse.trim() !== '') {
-                document.getElementById("output").innerHTML = htmlResponse;
-                localStorage.setItem("session", htmlResponse);
+        .then(jsonData => {
+            if (jsonData && jsonData.results && jsonData.results.length > 0) {
+                updateResultsTable(jsonData.results);
+                localStorage.setItem("session", JSON.stringify(jsonData));
             } else {
                 // Если нет результатов, показываем заглушку
                 document.getElementById("output").innerHTML = 

@@ -18,7 +18,7 @@
 
 ##############################################################################
 ##
-##  area-checker-server start up script for UN*X
+##  app start up script for UN*X
 ##
 ##############################################################################
 
@@ -40,10 +40,10 @@ cd "`dirname \"$PRG\"`/.." >/dev/null
 APP_HOME="`pwd -P`"
 cd "$SAVED" >/dev/null
 
-APP_NAME="area-checker-server"
+APP_NAME="app"
 APP_BASE_NAME=`basename "$0"`
 
-# Add default JVM options here. You can also use JAVA_OPTS and AREA_CHECKER_SERVER_OPTS to pass JVM options to this script.
+# Add default JVM options here. You can also use JAVA_OPTS and APP_OPTS to pass JVM options to this script.
 DEFAULT_JVM_OPTS=""
 
 # Use the maximum available, or set MAX_FD != -1 to use that value.
@@ -178,6 +178,6 @@ save () {
 APP_ARGS=`save "$@"`
 
 # Collect all arguments for the java command, following the shell quoting and substitution rules
-eval set -- $DEFAULT_JVM_OPTS $JAVA_OPTS $AREA_CHECKER_SERVER_OPTS -jar "\"$CLASSPATH\"" "$APP_ARGS"
+eval set -- $DEFAULT_JVM_OPTS $JAVA_OPTS $APP_OPTS -jar "\"$CLASSPATH\"" "$APP_ARGS"
 
 exec "$JAVACMD" "$@"

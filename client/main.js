@@ -102,8 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setInterval(updateDateTime, 1000);
 
     // Загружаем сохраненные данные
-    console.log(localStorage.getItem("session"));
-    document.getElementById("output").innerHTML = localStorage.getItem("session");
+    loadSavedResults();
 
     // Инициализируем форму
     mainForm = document.querySelector('input[value="Проверить"]');
@@ -275,6 +274,14 @@ function handleFormSubmit(e) {
             formData.append('xVal', xVal);
             formData.append('yVal', yVal);
             formData.append('rVal', rVal);
+            
+            // Добавляем sessionId для сохранения результатов между сессиями
+            let sessionId = localStorage.getItem('sessionId');
+            if (!sessionId) {
+                sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('sessionId', sessionId);
+            }
+            formData.append('sessionId', sessionId);
 
             fetch(`http://localhost:8080/script`, {
                 method: 'POST',
@@ -383,3 +390,43 @@ window.clearAllLocks = function() {
     resetFormState();
     lastSubmissionTime = 0;
 };
+
+// Функция для загрузки сохраненных результатов
+function loadSavedResults() {
+    const sessionId = localStorage.getItem('sessionId');
+    if (sessionId) {
+        // Запрашиваем результаты для текущей сессии
+        fetch(`http://localhost:8080/script?sessionId=${encodeURIComponent(sessionId)}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.text();
+            }
+            throw new Error(`Server responded with status: ${response.status}`);
+        })
+        .then(htmlResponse => {
+            if (htmlResponse && htmlResponse.trim() !== '') {
+                document.getElementById("output").innerHTML = htmlResponse;
+                localStorage.setItem("session", htmlResponse);
+            } else {
+                // Если нет результатов, показываем заглушку
+                document.getElementById("output").innerHTML = 
+                    '<tr><td colspan="6" style="text-align: center; color: #666;">Нет сохраненных результатов</td></tr>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading saved results:', error);
+            // Показываем заглушку при ошибке
+            document.getElementById("output").innerHTML = 
+                '<tr><td colspan="6" style="text-align: center; color: #666;">Ошибка загрузки результатов</td></tr>';
+        });
+    } else {
+        // Если нет sessionId, показываем заглушку
+        document.getElementById("output").innerHTML = 
+            '<tr><td colspan="6" style="text-align: center; color: #666;">Нет сохраненных результатов</td></tr>';
+    }
+}

@@ -30,15 +30,16 @@ public class FastCGIServer {
     }
     
     public void start() throws IOException {
-        ServerSocket serverSocket = new ServerSocket(PORT);
-        logger.info("Starting HTTP server on port {}...", PORT);
-        
-        while (true) {
-            try {
-                Socket clientSocket = serverSocket.accept();
-                new Thread(() -> handleRequest(clientSocket)).start();
-            } catch (IOException e) {
-                logger.error("Error accepting connection", e);
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+            logger.info("Starting HTTP server on port {}...", PORT);
+            
+            while (true) {
+                try {
+                    Socket clientSocket = serverSocket.accept();
+                    new Thread(() -> handleRequest(clientSocket)).start();
+                } catch (IOException e) {
+                    logger.error("Error accepting connection", e);
+                }
             }
         }
     }
@@ -95,6 +96,21 @@ public class FastCGIServer {
             } else {
                 params = parseQueryParams(path);
             }
+            
+            // Handle GET request for loading saved results
+            if ("GET".equals(method)) {
+                String sessionId = params.get("sessionId");
+                if (sessionId != null && !sessionId.trim().isEmpty()) {
+                    var allResults = SessionManager.getResults(sessionId.trim());
+                    String htmlResponse = ResponseBuilder.buildResultsTable(allResults);
+                    sendSuccessResponse(out, htmlResponse);
+                    return;
+                } else {
+                    sendErrorResponse(out, 400, "Missing sessionId parameter");
+                    return;
+                }
+            }
+            
             String xStr = params.get("xVal");
             String yStr = params.get("yVal");
             String rStr = params.get("rVal");
@@ -138,8 +154,8 @@ public class FastCGIServer {
                 x, y, r, isInArea, currentTime, executionTime
             );
             
-            // Add to session
-            String sessionId = "default_session";
+            // Generate or extract session ID from request
+            String sessionId = extractSessionId(requestLine, params);
             SessionManager.addResult(sessionId, result);
             
             // Get all results for this session
@@ -266,5 +282,24 @@ public class FastCGIServer {
             case 500: return "Internal Server Error";
             default: return "Unknown";
         }
+    }
+    
+    /**
+     * Extracts or generates session ID from request
+     * @param requestLine HTTP request line
+     * @param params Request parameters
+     * @return Session ID
+     */
+    private String extractSessionId(String requestLine, Map<String, String> params) {
+        // Try to get session ID from parameters first
+        String sessionId = params.get("sessionId");
+        if (sessionId != null && !sessionId.trim().isEmpty()) {
+            return sessionId.trim();
+        }
+        
+        // Try to get session ID from User-Agent header (if available)
+        // For now, generate a unique session ID based on timestamp and random
+        return "session_" + System.currentTimeMillis() + "_" + 
+               Integer.toHexString((int)(Math.random() * 10000));
     }
 }

@@ -1,15 +1,35 @@
 package lab1;
 
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Session manager for storing calculation results
- * Replaces PHP session functionality
+ * Replaces PHP session functionality with persistent storage
  */
 public class SessionManager {
     
     private static final Map<String, List<CalculationResult>> sessions = new ConcurrentHashMap<>();
+    private static final String SESSIONS_DIR = "sessions";
+    private static final String SESSION_FILE_EXT = ".session";
+    
+    static {
+        // Create sessions directory if it doesn't exist
+        try {
+            Path sessionsPath = Paths.get(SESSIONS_DIR);
+            if (!Files.exists(sessionsPath)) {
+                Files.createDirectories(sessionsPath);
+            }
+            // Load existing sessions on startup
+            loadAllSessions();
+        } catch (IOException e) {
+            System.err.println("Warning: Could not create sessions directory: " + e.getMessage());
+        }
+    }
     
     /**
      * Represents a single calculation result
@@ -58,6 +78,8 @@ public class SessionManager {
     public static void addResult(String sessionId, CalculationResult result) {
         List<CalculationResult> session = getSession(sessionId);
         session.add(result);
+        // Save to persistent storage
+        saveSession(sessionId, session);
     }
     
     /**
@@ -78,5 +100,107 @@ public class SessionManager {
      */
     public static void clearSession(String sessionId) {
         sessions.remove(sessionId);
+        // Also remove from persistent storage
+        try {
+            Path sessionFile = Paths.get(SESSIONS_DIR, sessionId + SESSION_FILE_EXT);
+            Files.deleteIfExists(sessionFile);
+        } catch (IOException e) {
+            System.err.println("Warning: Could not delete session file: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Loads all sessions from persistent storage
+     */
+    private static void loadAllSessions() {
+        try {
+            Path sessionsPath = Paths.get(SESSIONS_DIR);
+            if (!Files.exists(sessionsPath)) {
+                return;
+            }
+            
+            Files.list(sessionsPath)
+                .filter(path -> path.toString().endsWith(SESSION_FILE_EXT))
+                .forEach(SessionManager::loadSession);
+        } catch (IOException e) {
+            System.err.println("Warning: Could not load sessions: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Loads a single session from file
+     * @param sessionFile Path to session file
+     */
+    private static void loadSession(Path sessionFile) {
+        try {
+            String sessionId = sessionFile.getFileName().toString()
+                .replace(SESSION_FILE_EXT, "");
+            
+            List<CalculationResult> results = new ArrayList<>();
+            
+            try (BufferedReader reader = Files.newBufferedReader(sessionFile)) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (!line.trim().isEmpty()) {
+                        CalculationResult result = parseResultFromLine(line);
+                        if (result != null) {
+                            results.add(result);
+                        }
+                    }
+                }
+            }
+            
+            if (!results.isEmpty()) {
+                sessions.put(sessionId, results);
+            }
+        } catch (IOException e) {
+            System.err.println("Warning: Could not load session from " + sessionFile + ": " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Parses a calculation result from a line of text
+     * @param line Line containing result data
+     * @return CalculationResult or null if parsing fails
+     */
+    private static CalculationResult parseResultFromLine(String line) {
+        try {
+            String[] parts = line.split("\\|");
+            if (parts.length >= 6) {
+                double x = Double.parseDouble(parts[0]);
+                double y = Double.parseDouble(parts[1]);
+                double r = Double.parseDouble(parts[2]);
+                boolean isInArea = Boolean.parseBoolean(parts[3]);
+                String currentTime = parts[4];
+                double executionTime = Double.parseDouble(parts[5]);
+                
+                return new CalculationResult(x, y, r, isInArea, currentTime, executionTime);
+            }
+        } catch (Exception e) {
+            System.err.println("Warning: Could not parse result line: " + line);
+        }
+        return null;
+    }
+    
+    /**
+     * Saves a session to persistent storage
+     * @param sessionId Session identifier
+     * @param results List of calculation results
+     */
+    private static void saveSession(String sessionId, List<CalculationResult> results) {
+        try {
+            Path sessionFile = Paths.get(SESSIONS_DIR, sessionId + SESSION_FILE_EXT);
+            
+            try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(sessionFile))) {
+                for (CalculationResult result : results) {
+                    writer.println(String.format("%.6f|%.6f|%.6f|%s|%s|%.6f",
+                        result.getX(), result.getY(), result.getR(), 
+                        result.isInArea(), result.getCurrentTime(), 
+                        result.getExecutionTime()));
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Warning: Could not save session " + sessionId + ": " + e.getMessage());
+        }
     }
 }

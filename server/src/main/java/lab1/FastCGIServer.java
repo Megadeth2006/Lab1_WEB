@@ -11,12 +11,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
-/**
- * FastCGI server for area checking application
- * Implements FastCGI protocol for processing area check requests
- */
+
 public class FastCGIServer {
     
     private static final Logger logger = LoggerFactory.getLogger(FastCGIServer.class);
@@ -225,30 +221,6 @@ public class FastCGIServer {
         return parseQueryString(body);
     }
     
-    /**
-     * Простой парсинг form-urlencoded данных (как в примере)
-     */
-    private static Map<String, String> simpleFormUrlEncodedParsing(String body) {
-        Map<String, String> params = new HashMap<>();
-        if (body == null || body.isEmpty()) {
-            return params;
-        }
-        
-        String[] pairs = body.split("&");
-        for (String pair : pairs) {
-            String[] keyValue = pair.split("=", 2);
-            if (keyValue.length == 2) {
-                try {
-                    String key = URLDecoder.decode(keyValue[0], StandardCharsets.UTF_8);
-                    String value = URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8);
-                    params.put(key, value);
-                } catch (Exception e) {
-                    logger.warn("Error parsing parameter: {}", pair);
-                }
-            }
-        }
-        return params;
-    }
     
     /**
      * Создает успешный JSON ответ

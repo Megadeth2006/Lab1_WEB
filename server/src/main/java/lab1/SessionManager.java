@@ -7,10 +7,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Session manager for storing calculation results
- * Replaces PHP session functionality with persistent storage
- */
+
 public class SessionManager {
     
     private static final Map<String, List<CalculationResult>> sessions = new ConcurrentHashMap<>();
@@ -18,22 +15,20 @@ public class SessionManager {
     private static final String SESSION_FILE_EXT = ".session";
     
     static {
-        // Create sessions directory if it doesn't exist
+       
         try {
             Path sessionsPath = Paths.get(SESSIONS_DIR);
             if (!Files.exists(sessionsPath)) {
                 Files.createDirectories(sessionsPath);
             }
-            // Load existing sessions on startup
+           
             loadAllSessions();
         } catch (IOException e) {
             System.err.println("Warning: Could not create sessions directory: " + e.getMessage());
         }
     }
     
-    /**
-     * Represents a single calculation result
-     */
+    
     public static class CalculationResult {
         private final double x;
         private final double y;
@@ -94,20 +89,6 @@ public class SessionManager {
         return reversed;
     }
     
-    /**
-     * Clears a session
-     * @param sessionId Session identifier
-     */
-    public static void clearSession(String sessionId) {
-        sessions.remove(sessionId);
-        // Also remove from persistent storage
-        try {
-            Path sessionFile = Paths.get(SESSIONS_DIR, sessionId + SESSION_FILE_EXT);
-            Files.deleteIfExists(sessionFile);
-        } catch (IOException e) {
-            System.err.println("Warning: Could not delete session file: " + e.getMessage());
-        }
-    }
     
     /**
      * Loads all sessions from persistent storage
